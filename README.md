@@ -23,7 +23,8 @@ Flow: User question → Router → `run_plan` (tools) → Synthesizer → Final 
 │   ├── tools/         # Tool registry, RAG tool, marketing tools (stubs)
 │   ├── agent/         # Router, synthesizer, run_agent
 │   └── chat.py        # Multi-turn chat (optional)
-├── api/app.py         # Flask: GET /health, POST /agent
+├── api/app.py         # Flask: GET /health, POST /agent, POST /api/advice-chat
+├── frontend/          # Vite + React chat UI (Ad Advice Chat)
 ├── data/corpus/       # JSONL corpus (doc_id, text)
 └── tests/
 ```
@@ -82,7 +83,16 @@ PYTHONPATH=.:src python scripts/run_agent_cli.py "What are Meta's ad policies fo
 
 **On SSH:** You can use the runner scripts (no need to set PYTHONPATH or activate venv manually): `bash scripts/run_agent_ssh.sh "question"` and `bash scripts/run_flask_ssh.sh` for the API. See [docs/ENV_SETUP.md](docs/ENV_SETUP.md) section 6.
 
-### API
+### Backend (Flask API)
+
+Start the server from **repo root** so `api` and `src` are on path (default port **5000**):
+
+```bash
+PYTHONPATH=.:src python -m api.app
+# or: FLASK_APP=api.app:app PYTHONPATH=.:src flask run
+```
+
+Then:
 
 ```bash
 # Health
@@ -90,14 +100,27 @@ curl http://localhost:5000/health
 
 # Agent
 curl -X POST http://localhost:5000/agent -H "Content-Type: application/json" -d '{"question": "What are Meta ad policies for health claims?"}'
+
+# Chat (advice-chat, used by frontend)
+curl -X POST http://localhost:5000/api/advice-chat -H "Content-Type: application/json" -d '{"messages":[{"role":"user","content":"Hello"}]}'
 ```
 
-Start the server (from repo root so `api` and `src` are on path):
+The chat endpoint returns `{ "reply": "...", "assign_time_ms": ... }`. OpenAI API key is read from `.env` on the server only (never exposed to the frontend).
+
+### Frontend (Chat UI)
+
+React chat page (Vite) with Columbia background. From repo root:
 
 ```bash
-PYTHONPATH=.:src python -m api.app
-# or: FLASK_APP=api.app:app PYTHONPATH=.:src flask run
+cd frontend
+npm install
+npm run dev
 ```
+
+Then open the URL shown (e.g. http://localhost:5173). The dev server proxies `/api` to the backend at http://localhost:5000, so the backend must be running for chat to work.
+
+- **Background**: `frontend/public/Columbia.jpg` is used as the full-page background (with overlay for readability). If you have the image at `frontend/Columbia.jpg`, copy it to `frontend/public/Columbia.jpg`.
+- **Send**: Enter to send, Shift+Enter for new line; or use the Send button.
 
 ## Config
 

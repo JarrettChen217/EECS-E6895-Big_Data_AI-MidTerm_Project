@@ -1,8 +1,10 @@
 """Flask API: GET /health, POST /agent, POST /api/advice-chat."""
 
+import os
 import sys
 import time
 from pathlib import Path
+import subprocess
 
 # Ensure project root and src are on path (for prompts + marketing_agent)
 _root = Path(__file__).resolve().parent.parent
@@ -62,4 +64,15 @@ def advice_chat():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    PORT = 9999
+    frontend_dir = Path(__file__).resolve().parent.parent / "frontend"
+
+    vite_env = {**os.environ, "VITE_BACKEND_PORT": str(PORT)}
+    vite_proc = subprocess.Popen(["npm", "run", "dev"], cwd=str(frontend_dir), env=vite_env)
+
+    print(f"Starting Flask API on port {PORT}")
+    try:
+        app.run(host="0.0.0.0", port=PORT)
+    finally:
+        vite_proc.terminate()
+        print("Vite process terminated")

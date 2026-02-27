@@ -1,0 +1,34 @@
+# macOS: CPU/MPS PyTorch (no CUDA). Install:  pip install -r requirements-mac.txt
+# Do NOT use indices for CUDA (e.g. cu124/cu130). Default pip gives Mac builds.
+
+# --- PyTorch (CPU/MPS on Mac; no +cu130) ---
+torch>=2.0.0
+torchvision>=0.15.0
+torchaudio>=2.0.0
+
+# --- Core LLM (Hugging Face) ---
+huggingface-hub>=1.3.0
+transformers>=4.36.0,<5
+accelerate>=1.0.0
+
+# --- RAG (LangChain + vector store) ---
+langchain>=0.2.0
+langchain-community>=0.2.0
+langchain-core>=0.2.0
+langchain-text-splitters>=0.2.0
+langchain-huggingface
+faiss-cpu
+sentence-transformers
+
+# --- Optional: OpenAI backend ---
+openai>=1.0.0
+
+# --- API ---
+flask>=3.0.0
+
+# --- Config ---
+python-dotenv>=1.0.0
+
+# --- Utilities ---
+numpy>=1.24.0
+pandas>=2.0.0

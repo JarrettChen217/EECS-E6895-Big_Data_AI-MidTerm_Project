@@ -8,6 +8,11 @@ set -e
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
+# # Prefer venv outside repo when not set (override with env VENV_PATH)
+# if [[ -z "$VENV_PATH" ]] && [[ -d "$HOME/python-envs/normwear_env" ]]; then
+#   export VENV_PATH="$HOME/python-envs/normwear_env"
+# fi
+
 # Activate venv if not already
 if [[ -z "$VIRTUAL_ENV" ]]; then
   if [[ -n "$VENV_PATH" ]]; then

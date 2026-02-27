@@ -36,7 +36,7 @@ class HuggingFaceLLM(BaseLLM):
             model_name,
             trust_remote_code=True,
             device_map=device_map,
-            torch_dtype=torch_dtype,
+            dtype=torch_dtype,
             token=token or None,
         )
 

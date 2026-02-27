@@ -38,6 +38,40 @@ def agent():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/agent", methods=["POST"])
+def api_agent():
+    """Unified Agent endpoint for frontend.
+
+    Body: {"question": "...", "messages": [{role, content}, ...]?}
+    Returns: {"reply": str, "raw": {...}} where raw is the full run_agent dict.
+    """
+    data = request.get_json() or {}
+    question = str(data.get("question", "")).strip()
+    if not question:
+        return jsonify({"error": "Missing or empty 'question'"}), 400
+
+    # Optional: normalize messages for future use / logging (currently unused by run_agent)
+    messages = data.get("messages")
+    normalized_messages = None
+    if isinstance(messages, list):
+        tmp = []
+        for m in messages:
+            if isinstance(m, dict) and "role" in m and "content" in m:
+                tmp.append({"role": str(m["role"]), "content": str(m["content"])})
+        if tmp:
+            normalized_messages = tmp
+
+    try:
+        from marketing_agent.agent.run import run_agent
+
+        # Currently run_agent only accepts question; messages are kept for future extensions.
+        result = run_agent(question)
+        reply = result.get("final_answer") or ""
+        return jsonify({"reply": reply, "raw": result})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/advice-chat", methods=["POST"])
 def advice_chat():
     """Body: { messages: [{role, content}, ...] }. Returns { reply: str } or { reply, assign_time_ms }."""

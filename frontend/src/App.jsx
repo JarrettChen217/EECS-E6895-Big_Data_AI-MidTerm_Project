@@ -76,7 +76,7 @@ export default function App() {
     scrollToBottom()
   }, [messages])
 
-  const sendMessage = async () => {
+  const sendMessageToChat = async () => {
     const text = input.trim()
     if (!text || loading) return
 
@@ -126,10 +126,63 @@ export default function App() {
     }
   }
 
+  const sendMessageToAgent = async () => {
+    const text = input.trim()
+    if (!text || loading) return
+
+    const userMessage = { role: ROLE_USER, content: text }
+    setMessages((prev) => [...prev, userMessage])
+    setInput('')
+    setLoading(true)
+    setError(null)
+
+    const conversationSoFar = [...messages, userMessage].map((m) => ({
+      role: m.role,
+      content: m.content,
+    }))
+
+    try {
+      const res = await fetch('/api/agent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: text, messages: conversationSoFar }),
+      })
+      const resText = await res.text()
+      let data
+      try {
+        data = resText ? JSON.parse(resText) : {}
+      } catch {
+        throw new Error(
+          res.ok
+            ? 'Backend returned invalid JSON.'
+            : `Request failed (${res.status}). Is the server running on port 5000?`
+        )
+      }
+
+      if (!res.ok) {
+        throw new Error(data.error || `Request failed: ${res.status}`)
+      }
+
+      const reply =
+        data.reply ??
+        data.final_answer ??
+        (typeof data === 'string' ? data : '')
+      setMessages((prev) => [...prev, { role: ROLE_ASSISTANT, content: reply }])
+    } catch (err) {
+      setError(err.message)
+      setMessages((prev) => [
+        ...prev,
+        { role: ROLE_ASSISTANT, content: `Error: ${err.message}` },
+      ])
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      sendMessage()
+      sendMessageToChat()
     }
   }
 
@@ -204,11 +257,20 @@ export default function App() {
             <button
               type="button"
               className="composer__send"
-              onClick={sendMessage}
+              onClick={sendMessageToChat}
               disabled={loading || !input.trim()}
               aria-label="Send"
             >
               Send
+            </button>
+            <button
+              type="button"
+              className="composer__send composer__send--agent"
+              onClick={sendMessageToAgent}
+              disabled={loading || !input.trim()}
+              aria-label="Send to Agent"
+            >
+              Ask Agent
             </button>
           </div>
         </div>

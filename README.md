@@ -103,6 +103,9 @@ curl -X POST http://localhost:5000/agent -H "Content-Type: application/json" -d 
 
 # Chat (advice-chat, used by frontend)
 curl -X POST http://localhost:5000/api/advice-chat -H "Content-Type: application/json" -d '{"messages":[{"role":"user","content":"Hello"}]}'
+
+# Unified Agent for frontend
+curl -X POST http://localhost:5000/api/agent -H "Content-Type: application/json" -d '{"question": "What platforms should I use for a 5k budget?", "messages":[{"role":"user","content":"I am a new seller"}]}'
 ```
 
 The chat endpoint returns `{ "reply": "...", "assign_time_ms": ... }`. OpenAI API key is read from `.env` on the server only (never exposed to the frontend).

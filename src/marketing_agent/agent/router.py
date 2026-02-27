@@ -10,6 +10,9 @@ from marketing_agent.agent.utils import extract_json
 try:
     from prompts.router import make_router_prompt, ROUTER_SYSTEM
 except ImportError:
+    # Log warning if prompts.router is not found.
+    print("Warning: prompts.router not found, using default router system.")
+
     ROUTER_SYSTEM = "Output strictly valid JSON only. No extra text."
 
     def make_router_prompt(question: str) -> str:

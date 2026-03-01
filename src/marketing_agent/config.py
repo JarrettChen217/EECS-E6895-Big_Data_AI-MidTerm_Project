@@ -11,6 +11,10 @@ except ImportError:
     pass
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
+# Hugging Face cache: default to project-relative path so it works on any machine
+if not os.getenv("HF_HOME") and not os.getenv("HUGGINGFACE_HUB_CACHE"):
+    os.environ["HF_HOME"] = str(_PROJECT_ROOT / "data" / ".cache" / "huggingface")
+
 # LLM
 LLM_BACKEND = os.getenv("LLM_BACKEND", "huggingface")
 HF_TOKEN = os.getenv("HF_TOKEN", "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")

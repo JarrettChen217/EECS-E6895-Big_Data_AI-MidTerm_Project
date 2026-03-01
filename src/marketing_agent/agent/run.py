@@ -12,17 +12,9 @@ from marketing_agent.tools import run_plan, make_tool_rag, ad_planner, complianc
 from marketing_agent.agent.router import route_question
 from marketing_agent.agent.synthesizer import synthesize_answer
 
-# Lazy singletons for default llm/retriever/registry (avoid reload on every call)
-_llm: BaseLLM | None = None
+# Lazy singletons for retriever (avoid reload on every call). LLM is singleton in llm.get_llm().
 _retriever = None
 _tool_registry: dict[str, Any] | None = None
-
-
-def _get_default_llm() -> BaseLLM:
-    global _llm
-    if _llm is None:
-        _llm = get_llm()
-    return _llm
 
 
 def _get_default_retriever():
@@ -53,7 +45,7 @@ def run_agent(
     retriever=None,
 ) -> dict[str, Any]:
     """Run the full agent: route -> execute tools -> synthesize answer."""
-    llm = llm or _get_default_llm()
+    llm = llm or get_llm()
     if retriever is None:
         retriever = _get_default_retriever()
     tool_registry = _build_tool_registry(llm, retriever)

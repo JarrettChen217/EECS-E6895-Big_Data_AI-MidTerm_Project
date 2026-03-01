@@ -332,6 +332,18 @@ body {
   color: var(--text-muted);
 }
 
+.block__campaign-image {
+  margin-top: 1rem;
+  border-radius: var(--radius);
+  overflow: hidden;
+  max-width: 100%;
+}
+.block__campaign-image img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
 /* Typing：圆点动画 ===== */
 .typing {
   display: inline-flex;

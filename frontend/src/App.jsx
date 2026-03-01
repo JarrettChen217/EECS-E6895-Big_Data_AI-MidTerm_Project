@@ -167,7 +167,9 @@ export default function App() {
         data.reply ??
         data.final_answer ??
         (typeof data === 'string' ? data : '')
-      setMessages((prev) => [...prev, { role: ROLE_ASSISTANT, content: reply }])
+      const assistantMsg = { role: ROLE_ASSISTANT, content: reply }
+      if (data.campaign_image_url) assistantMsg.campaign_image_url = data.campaign_image_url
+      setMessages((prev) => [...prev, assistantMsg])
     } catch (err) {
       setError(err.message)
       setMessages((prev) => [
@@ -220,7 +222,14 @@ export default function App() {
               data-role={msg.role}
             >
               <div className="block__label">{msg.role === ROLE_USER ? 'You' : 'Assistant'}</div>
-              <div className="block__body">{msg.content}</div>
+              <div className="block__body">
+                {msg.content}
+                {msg.campaign_image_url && (
+                  <div className="block__campaign-image">
+                    <img src={msg.campaign_image_url} alt="Ad campaign creative" />
+                  </div>
+                )}
+              </div>
             </div>
           ))}
           {loading && (

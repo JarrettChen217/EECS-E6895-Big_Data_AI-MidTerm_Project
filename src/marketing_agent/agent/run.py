@@ -8,7 +8,7 @@ from marketing_agent import config as agent_config
 from marketing_agent.llm import get_llm
 from marketing_agent.llm.base import BaseLLM
 from marketing_agent.rag import load_jsonl_corpus, build_vectorstore, get_retriever
-from marketing_agent.tools import run_plan, make_tool_rag, ad_planner, compliance_check
+from marketing_agent.tools import run_plan, make_tool_rag, ad_planner, compliance_check, get_campaign
 from marketing_agent.agent.router import route_question
 from marketing_agent.agent.synthesizer import synthesize_answer
 
@@ -40,6 +40,7 @@ def _build_tool_registry(llm: BaseLLM, retriever) -> dict[str, Any]:
     reg = {
         "ad_planner": ad_planner,
         "compliance_check": compliance_check,
+        "get_campaign": get_campaign,
     }
     if retriever is not None:
         reg["rag"] = make_tool_rag(retriever, llm)

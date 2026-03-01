@@ -24,3 +24,8 @@ _CORPUS_PATH = os.getenv("CORPUS_PATH", "data/corpus/ad_policy_corpus.jsonl")
 CORPUS_PATH = (_PROJECT_ROOT / _CORPUS_PATH) if _CORPUS_PATH else None
 EMBED_MODEL_NAME = os.getenv("EMBED_MODEL_NAME", "sentence-transformers/all-MiniLM-L6-v2")
 RAG_TOP_K = int(os.getenv("RAG_TOP_K", "3"))
+
+# Campaigns DB (JSON) and assets directory
+_CAMPAIGNS_JSON = os.getenv("CAMPAIGNS_JSON", "data/campaigns.json")
+CAMPAIGNS_JSON_PATH = (_PROJECT_ROOT / _CAMPAIGNS_JSON) if _CAMPAIGNS_JSON else None
+CAMPAIGNS_ASSETS_DIR = _PROJECT_ROOT / "data" / "campaigns"

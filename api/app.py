@@ -13,9 +13,29 @@ if str(_root) not in sys.path:
 if str(_root / "src") not in sys.path:
     sys.path.insert(0, str(_root / "src"))
 
-from flask import Flask, jsonify, request
+import json
+from flask import Flask, jsonify, request, send_file
 
 app = Flask(__name__)
+
+# Campaigns DB path (same as marketing_agent config)
+_CAMPAIGNS_JSON = _root / "data" / "campaigns.json"
+_CAMPAIGNS_DIR = _root / "data" / "campaigns"
+
+
+def _load_campaign_by_id(campaign_id):
+    """Load campaign record by id from data/campaigns.json."""
+    if not _CAMPAIGNS_JSON.exists():
+        return None
+    try:
+        with open(_CAMPAIGNS_JSON, "r", encoding="utf-8") as f:
+            campaigns = json.load(f)
+        for c in campaigns:
+            if c.get("id") == campaign_id:
+                return c
+    except Exception:
+        pass
+    return None
 
 
 @app.route("/health", methods=["GET"])
@@ -67,9 +87,33 @@ def api_agent():
         # Currently run_agent only accepts question; messages are kept for future extensions.
         result = run_agent(question)
         reply = result.get("final_answer") or ""
-        return jsonify({"reply": reply, "raw": result})
+        payload = {"reply": reply, "raw": result}
+        for step in result.get("trace") or []:
+            if step.get("tool") == "get_campaign":
+                res = step.get("result") or {}
+                if res.get("status") == "ok":
+                    camp = res.get("campaign") or {}
+                    if camp.get("image_url"):
+                        payload["campaign_image_url"] = camp["image_url"]
+                        break
+        return jsonify(payload)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/campaigns/<campaign_id>/image", methods=["GET"])
+def campaign_image(campaign_id):
+    """Serve campaign creative image by campaign id."""
+    campaign = _load_campaign_by_id(campaign_id)
+    if not campaign:
+        return jsonify({"error": "Campaign not found"}), 404
+    image_path = campaign.get("image_path")
+    if not image_path:
+        return jsonify({"error": "No image for this campaign"}), 404
+    file_path = _CAMPAIGNS_DIR / image_path
+    if not file_path.is_file():
+        return jsonify({"error": "Image file not found"}), 404
+    return send_file(file_path, mimetype="image/jpeg")
 
 
 @app.route("/api/advice-chat", methods=["POST"])

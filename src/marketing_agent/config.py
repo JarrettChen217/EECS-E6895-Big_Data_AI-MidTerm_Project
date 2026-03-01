@@ -6,17 +6,17 @@ from pathlib import Path
 try:
     from dotenv import load_dotenv
     _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-    load_dotenv(_PROJECT_ROOT / ".env")
+    load_dotenv(_PROJECT_ROOT / ".env", override=True)
 except ImportError:
     pass
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 # LLM
-# LLM_BACKEND = os.getenv("LLM_BACKEND", "huggingface")
-LLM_BACKEND = os.getenv("LLM_BACKEND", "openai")
+LLM_BACKEND = os.getenv("LLM_BACKEND", "huggingface")
 HF_TOKEN = os.getenv("HF_TOKEN", "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")
 HF_MODEL_NAME = os.getenv("HF_MODEL_NAME", "Qwen/Qwen2.5-3B-Instruct")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
 # RAG: resolve path relative to project root

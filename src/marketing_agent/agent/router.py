@@ -21,8 +21,31 @@ User question: {question}
 JSON:"""
 
 
+# Keywords that indicate user wants a stored campaign creative (not ad_planner copy)
+_CAMPAIGN_INTENT_KEYWORDS = (
+    "ad", "ads", "creative", "creatives", "campaign", "image", "picture",
+    "give", "want", "show", "get", "need", "example", "sample", "option",
+    "concept", "can you", "could you", "help", "make", "design",
+)
+
+
+def _force_campaign_plan(question: str) -> dict[str, Any] | None:
+    """If question clearly asks for a campaign creative for a known category, return plan without LLM."""
+    q = question.strip().lower()
+    # healthcare: must contain "healthcare" or ("health" + ad/creative/campaign)
+    is_healthcare = "healthcare" in q or ("health" in q and any(x in q for x in ("ad", "ads", "creative", "campaign")))
+    if is_healthcare:
+        for kw in _CAMPAIGN_INTENT_KEYWORDS:
+            if kw in q:
+                return {"plan": [{"tool": "get_campaign", "args": {"category": "healthcare"}}]}
+    return None
+
+
 def route_question(question: str, llm: BaseLLM) -> dict[str, Any]:
     """Classify intent and return plan = {"plan": [{"tool", "args"}, ...]}."""
+    forced = _force_campaign_plan(question)
+    if forced is not None:
+        return forced
     router_text = make_router_prompt(question)
     messages = [
         {"role": "system", "content": ROUTER_SYSTEM},

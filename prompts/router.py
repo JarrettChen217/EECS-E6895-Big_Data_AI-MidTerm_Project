@@ -44,12 +44,13 @@ Available tools:
 {tools_description}
 
 Routing rules (follow strictly):
-- Use rag for: policy questions, platform specs, benchmarks, definitions, documentation.
-- Use ad_planner for: which platforms/formats to use, budget split, pacing, strategy.
+- PRIORITY: If the user asks for an ad or creative for a specific industry/category (e.g. "Give me a healthcare ad", "I want a healthcare ad", "healthcare ad campaign", "healthcare creative"), use ONLY get_campaign with that category (e.g. {{"tool": "get_campaign", "args": {{"category": "healthcare"}}}}). Do NOT use ad_planner or rag for this.
+- Use rag for: policy questions, platform specs, benchmarks, definitions, documentation (only when NOT asking for a specific industry ad).
+- Use ad_planner for: which platforms/formats to use, budget split, pacing, strategy (only when NOT asking for a stored campaign creative).
 - Use compliance_check for: validating draft copy or plan for policy violations, risks.
-- Use get_campaign for: when user asks for an ad solution/creative for a specific industry or category (e.g. "healthcare", "I want a healthcare ad"). Prefer get_campaign with category/industry matching the request.
-- Choose the MINIMAL set of tools.
-- If both policy info and strategy are needed, include both rag and ad_planner.
+- Use get_campaign for: any request for an ad/creative for an industry (healthcare, etc.). Returns a stored campaign with image.
+- Choose the MINIMAL set of tools. For "healthcare ad" / "give me a healthcare ad" → one step: get_campaign only.
+- If both policy info and strategy are needed (and user did not ask for a campaign creative), include both rag and ad_planner.
 - If user provides draft text to check, use compliance_check (and optionally rag).
 
 User question:

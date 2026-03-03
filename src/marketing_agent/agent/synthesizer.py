@@ -37,6 +37,16 @@ def _has_citation(text: str) -> bool:
     return bool(re.search(r"\[[^\[\]]+\]", text))
 
 
+def _get_campaign_succeeded(trace: List[dict[str, Any]]) -> bool:
+    """True if get_campaign was used and returned a campaign with image."""
+    for t in trace:
+        if t.get("tool") == "get_campaign" and isinstance(t.get("result"), dict):
+            res = t["result"]
+            if res.get("status") == "ok" and res.get("campaign", {}).get("image_url"):
+                return True
+    return False
+
+
 def synthesize_answer(
     question: str,
     trace: List[dict[str, Any]],
@@ -54,6 +64,9 @@ def synthesize_answer(
     tool_text = "\n\n".join(tool_blocks)
 
     system = get_synthesis_system(citations)
+    # When get_campaign returned a campaign with image, keep reply short so the image is the focus
+    if _get_campaign_succeeded(trace):
+        system += "\nThe user asked for a campaign creative. get_campaign returned a campaign with an image (shown below). Reply in 1-2 short sentences only, e.g. 'Here is the healthcare ad creative from our campaign library.' Do NOT write long ad copy, do NOT ask clarifying questions."
     messages = [
         {"role": "system", "content": system},
         {"role": "user", "content": f"Question: {question}\n\nTool outputs:\n{tool_text}\n\nWrite the final answer:"},

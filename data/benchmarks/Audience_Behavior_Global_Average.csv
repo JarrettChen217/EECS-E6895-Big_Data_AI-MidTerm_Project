@@ -1,0 +1,7 @@
+Platform,Region,Age_18_24_%,Age_25_34_%,Age_35_44_%,Mobile_Usage_%,Primary_Intent,Purchase_Intent_Level,Typical_Funnel_Role
+Facebook,Global,22,30,20,84,Social/Discovery,Medium,Awareness/Retargeting
+Instagram,Global,28,33,17,91,Visual Discovery,Medium-High,Awareness
+TikTok,Global,40,28,12,96,Short-form Discovery,Medium,Awareness
+LinkedIn,Global,10,36,28,72,Professional/Search,High,Consideration/Conversion
+YouTube,Global,25,32,18,89,Video Search/Discovery,Medium,Awareness
+Google Search,Global,18,34,24,93,High Intent Search,Very High,Conversion

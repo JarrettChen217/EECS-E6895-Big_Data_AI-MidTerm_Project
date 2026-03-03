@@ -52,6 +52,24 @@ def run_agent(
 
     plan = route_question(question, llm)
     trace = run_plan(plan, tool_registry)
+
+    # When only get_campaign was used and it returned a campaign with image, skip LLM synthesizer
+    # and use a fixed short reply so we never get long ad copy or clarifying questions.
+    plan_steps = plan.get("plan") or []
+    if len(plan_steps) == 1 and plan_steps[0].get("tool") == "get_campaign":
+        for t in trace:
+            if t.get("tool") == "get_campaign" and isinstance(t.get("result"), dict):
+                res = t["result"]
+                if res.get("status") == "ok" and res.get("campaign", {}).get("image_url"):
+                    camp_name = (res.get("campaign") or {}).get("name") or "campaign"
+                    final_answer = f"Here is the {camp_name} creative from our campaign library."
+                    return {
+                        "question": question,
+                        "plan": plan_steps,
+                        "trace": trace,
+                        "final_answer": final_answer,
+                    }
+
     final_answer = synthesize_answer(question, trace, llm)
 
     return {

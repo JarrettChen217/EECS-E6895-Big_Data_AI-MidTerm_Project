@@ -1,0 +1,7 @@
+Platform,Industry,Region,Avg_CPC_USD,Avg_CPM_USD,Avg_CPA_USD,Avg_CTR_%,Avg_Conversion_Rate_%,Funnel_Stage
+Facebook,Ecommerce,US,1.25,8.5,22,1.2,2.5,Awareness/Conversion
+Instagram,Ecommerce,US,1.1,9.0,24,1.1,2.3,Awareness/Consideration
+TikTok,Ecommerce,US,0.9,5.0,18,1.5,2.8,Awareness
+LinkedIn,B2B,US,5.5,10.5,60,0.6,1.5,Consideration/Conversion
+YouTube,General,US,0.3,6.0,15,1.8,2.0,Awareness/Retargeting
+Google Search,Ecommerce,US,5.26,,70.11,6.66,7.52,Conversion

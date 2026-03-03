@@ -1,0 +1,58 @@
+@startuml
+
+title Marketing Agent Architecture - UML
+
+package "marketing_agent" {
+
+  [config]
+
+  package "LLM" {
+    [BaseLLM]
+    [HuggingFaceLLM]
+    [OpenAILLM]
+    [get_llm()]
+  }
+
+  package "RAG" {
+    [Corpus / VectorStore / Retriever]
+    [rag_answer()]
+  }
+
+  package "Tools" {
+    [ad_planner]
+    [compliance_check]
+    [get_campaign]
+    [rag_tool]
+  }
+
+  package "Agent" {
+    [route_question]
+    [run_agent]
+    [synthesize_answer]
+  }
+
+  [chat]
+}
+
+' 对外入口
+[chat] --> [get_llm()]
+[chat] --> [BaseLLM]
+
+[run_agent] --> [route_question]
+[run_agent] --> [synthesize_answer]
+[run_agent] --> [get_llm()]
+[run_agent] --> [rag_answer()]
+[run_agent] --> [ad_planner]
+[run_agent] --> [compliance_check]
+[run_agent] --> [get_campaign]
+
+' RAG 依赖语料与向量库
+[rag_answer()] --> [Corpus / VectorStore / Retriever]
+
+' 配置依赖关系
+[HuggingFaceLLM] --> [config]
+[OpenAILLM] --> [config]
+[get_campaign] --> [config]
+[run_agent] --> [config]
+
+@enduml

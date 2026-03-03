@@ -1,6 +1,6 @@
 Platform,Industry,Region,Avg_CPC_USD,Avg_CPM_USD,Avg_CPA_USD,Avg_CTR_%,Avg_Conversion_Rate_%
 Google Ads,Animals & Pets,US,3.97,261.23,31.82,6.58,13.07
-Google Ads,Apparel / Fashion & Jewelry,US,4.31,291.79,101.49,6.77,3.99
+Google Ads,Apparel & Fashion & Jewelry,US,4.31,291.79,101.49,6.77,3.99
 Google Ads,Arts & Entertainment,US,1.6,209.6,30.27,13.1,4.84
 Google Ads,Attorneys & Legal Services,US,8.58,512.23,131.63,5.97,5.09
 Google Ads,Automotive — For Sale,US,2.41,199.79,38.86,8.29,7.76
@@ -19,6 +19,6 @@ Google Ads,Personal Services,US,5.81,446.79,53.52,7.69,9.74
 Google Ads,Physicians & Surgeons,US,5.0,336.5,56.83,6.73,11.62
 Google Ads,Real Estate,US,2.53,213.28,100.48,8.43,3.28
 Google Ads,Restaurants & Food,US,2.05,155.39,30.27,7.58,7.09
-Google Ads,Shopping, Collectibles & Gifts,US,3.49,311.31,47.94,8.92,3.83
+Google Ads,Shopping & Collectibles & Gifts,US,3.49,311.31,47.94,8.92,3.83
 Google Ads,Sports & Recreation,US,2.64,242.62,47.47,9.19,7.62
 Google Ads,Travel,US,2.12,185.08,73.7,8.73,5.75

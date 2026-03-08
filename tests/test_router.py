@@ -1,10 +1,10 @@
 """Tests for router: route_question returns valid plan with platform_chooser + rag."""
 
-import pytest
+import unittest
 from unittest.mock import MagicMock
 
 
-class TestRouter:
+class TestRouter(unittest.TestCase):
     """Tests for route_question."""
 
     def test_route_question_returns_plan_with_platform_chooser_and_rag(self):

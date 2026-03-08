@@ -1,10 +1,10 @@
 """End-to-end tests: simulate user input and run_agent (with mocked LLM)."""
 
-import pytest
+import unittest
 from unittest.mock import MagicMock, patch
 
 
-class TestRunAgentE2E:
+class TestRunAgentE2E(unittest.TestCase):
     """E2E tests for run_agent with mocked LLM and retriever."""
 
     def test_run_agent_returns_final_answer(self):
@@ -68,4 +68,7 @@ class TestRunAgentE2E:
 
         assert "final_answer" in result
         assert "plan" in result
-        assert len(result.get("plan", [])) == 2
+        steps = result.get("plan", [])
+        assert len(steps) >= 2, f"fallback plan should have >= 2 steps, got {len(steps)}"
+        assert steps[0]["tool"] == "platform_chooser"
+        assert any(s["tool"] == "rag" for s in steps)

@@ -1,10 +1,10 @@
 """Tests for run_plan: executes tools and returns trace."""
 
-import pytest
+import unittest
 from unittest.mock import MagicMock
 
 
-class TestRunPlan:
+class TestRunPlan(unittest.TestCase):
     """Tests for run_plan executor."""
 
     def test_run_plan_executes_both_tools(self):

@@ -62,8 +62,8 @@ def route_question(question: str, llm: BaseLLM) -> dict[str, Any]:
         {"role": "system", "content": ROUTER_SYSTEM},
         {"role": "user", "content": router_text},
     ]
-    raw = llm.generate(messages, max_new_tokens=512, temperature=0.0)
     try:
+        raw = llm.generate(messages, max_new_tokens=512, temperature=0.0)
         plan = extract_json(raw)
         if "plan" not in plan or not isinstance(plan["plan"], list) or len(plan["plan"]) == 0:
             raise ValueError("Invalid plan schema")

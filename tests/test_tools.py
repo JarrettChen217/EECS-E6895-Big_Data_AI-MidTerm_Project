@@ -1,9 +1,9 @@
 """Unit tests for platform_chooser and RAG tool."""
 
-import pytest
+import unittest
 
 
-class TestPlatformChooser:
+class TestPlatformChooser(unittest.TestCase):
     """Tests for platform_chooser tool."""
 
     def test_platform_chooser_returns_ok_with_valid_industry(self):
@@ -34,7 +34,7 @@ class TestPlatformChooser:
         assert "status" in result
 
 
-class TestRagTool:
+class TestRagTool(unittest.TestCase):
     """Tests for RAG tool (with mock retriever)."""
 
     def test_make_tool_rag_returns_callable(self):

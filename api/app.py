@@ -87,16 +87,7 @@ def api_agent():
         # Currently run_agent only accepts question; messages are kept for future extensions.
         result = run_agent(question)
         reply = result.get("final_answer") or ""
-        payload = {"reply": reply, "raw": result}
-        for step in result.get("trace") or []:
-            if step.get("tool") == "get_campaign":
-                res = step.get("result") or {}
-                if res.get("status") == "ok":
-                    camp = res.get("campaign") or {}
-                    if camp.get("image_url"):
-                        payload["campaign_image_url"] = camp["image_url"]
-                        break
-        return jsonify(payload)
+        return jsonify({"reply": reply, "raw": result})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

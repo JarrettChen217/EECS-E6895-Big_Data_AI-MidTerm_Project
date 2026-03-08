@@ -8,55 +8,65 @@ from marketing_agent.llm.base import BaseLLM
 from marketing_agent.agent.utils import extract_json
 
 try:
-    from prompts.router import make_router_prompt, ROUTER_SYSTEM
+    from prompts.router import make_router_prompt, ROUTER_SYSTEM, MAX_RAG_STEPS
 except ImportError:
-    # Log warning if prompts.router is not found.
     print("Warning: prompts.router not found, using default router system.")
-
     ROUTER_SYSTEM = "Output strictly valid JSON only. No extra text."
+    MAX_RAG_STEPS = 5
 
     def make_router_prompt(question: str) -> str:
-        return f"""Return valid JSON: {{"plan": [{{"tool": "...", "args": {{...}}}}]}}.
+        return f"""Return valid JSON with plan: platform_chooser, then 2-5 rag steps.
 User question: {question}
 JSON:"""
 
 
-# Keywords that indicate user wants a stored campaign creative (not ad_planner copy)
-_CAMPAIGN_INTENT_KEYWORDS = (
-    "ad", "ads", "creative", "creatives", "campaign", "image", "picture",
-    "give", "want", "show", "get", "need", "example", "sample", "option",
-    "concept", "can you", "could you", "help", "make", "design",
-)
+def _fallback_plan(question: str) -> dict[str, Any]:
+    """Return default plan when LLM routing fails."""
+    industry = question.strip()[:100] if question else "General"
+    return {
+        "plan": [
+            {"tool": "platform_chooser", "args": {"industry": industry, "region": "US", "include_audience": True}},
+            {"tool": "rag", "args": {"question": f"Meta ads policy for {industry}", "k": 3}},
+            {"tool": "rag", "args": {"question": f"Google Ads policy and restricted categories for {industry}", "k": 3}},
+            {"tool": "rag", "args": {"question": "TikTok ads policy and brand safety", "k": 3}},
+        ]
+    }
 
 
-def _force_campaign_plan(question: str) -> dict[str, Any] | None:
-    """If question clearly asks for a campaign creative for a known category, return plan without LLM."""
-    q = question.strip().lower()
-    # healthcare: must contain "healthcare" or ("health" + ad/creative/campaign)
-    is_healthcare = "healthcare" in q or ("health" in q and any(x in q for x in ("ad", "ads", "creative", "campaign")))
-    if is_healthcare:
-        for kw in _CAMPAIGN_INTENT_KEYWORDS:
-            if kw in q:
-                return {"plan": [{"tool": "get_campaign", "args": {"category": "healthcare"}}]}
-    return None
+def _cap_rag_steps(plan: dict[str, Any], max_rag: int = 5) -> dict[str, Any]:
+    """Cap RAG steps at max_rag; keep first platform_chooser and up to max_rag rag steps."""
+    steps = plan.get("plan", [])
+    if not steps:
+        return plan
+    try:
+        from prompts.router import MAX_RAG_STEPS
+        max_rag = MAX_RAG_STEPS
+    except ImportError:
+        pass
+    chosen = []
+    rag_count = 0
+    for step in steps:
+        tool = step.get("tool", "")
+        if tool == "platform_chooser":
+            chosen.append(step)
+        elif tool == "rag" and rag_count < max_rag:
+            chosen.append(step)
+            rag_count += 1
+    return {"plan": chosen}
 
 
 def route_question(question: str, llm: BaseLLM) -> dict[str, Any]:
-    """Classify intent and return plan = {"plan": [{"tool", "args"}, ...]}."""
-    forced = _force_campaign_plan(question)
-    if forced is not None:
-        return forced
+    """Return plan = {"plan": [platform_chooser, rag x N]} with LLM-extracted args (up to 5 rag steps)."""
     router_text = make_router_prompt(question)
     messages = [
         {"role": "system", "content": ROUTER_SYSTEM},
         {"role": "user", "content": router_text},
     ]
-    raw = llm.generate(messages, max_new_tokens=256, temperature=0.0)
+    raw = llm.generate(messages, max_new_tokens=512, temperature=0.0)
     try:
         plan = extract_json(raw)
         if "plan" not in plan or not isinstance(plan["plan"], list) or len(plan["plan"]) == 0:
             raise ValueError("Invalid plan schema")
-        return plan
+        return _cap_rag_steps(plan)
     except Exception:
-        # Fallback: RAG only
-        return {"plan": [{"tool": "rag", "args": {"question": question, "k": 3}}]}
+        return _fallback_plan(question)

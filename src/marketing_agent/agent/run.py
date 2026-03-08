@@ -8,14 +8,7 @@ from marketing_agent import config as agent_config
 from marketing_agent.llm import get_llm
 from marketing_agent.llm.base import BaseLLM
 from marketing_agent.rag import load_jsonl_corpus, build_vectorstore, get_retriever
-from marketing_agent.tools import (
-    run_plan,
-    make_tool_rag,
-    platform_chooser,
-    ad_planner,
-    compliance_check,
-    get_campaign,
-)
+from marketing_agent.tools import run_plan, make_tool_rag, platform_chooser
 from marketing_agent.agent.router import route_question
 from marketing_agent.agent.synthesizer import synthesize_answer
 
@@ -36,12 +29,7 @@ def _get_default_retriever():
 
 
 def _build_tool_registry(llm: BaseLLM, retriever) -> dict[str, Any]:
-    reg = {
-        "platform_chooser": platform_chooser,
-        "ad_planner": ad_planner,
-        "compliance_check": compliance_check,
-        "get_campaign": get_campaign,
-    }
+    reg = {"platform_chooser": platform_chooser}
     if retriever is not None:
         reg["rag"] = make_tool_rag(retriever, llm)
     return reg
@@ -60,24 +48,6 @@ def run_agent(
 
     plan = route_question(question, llm)
     trace = run_plan(plan, tool_registry)
-
-    # When only get_campaign was used and it returned a campaign with image, skip LLM synthesizer
-    # and use a fixed short reply so we never get long ad copy or clarifying questions.
-    plan_steps = plan.get("plan") or []
-    if len(plan_steps) == 1 and plan_steps[0].get("tool") == "get_campaign":
-        for t in trace:
-            if t.get("tool") == "get_campaign" and isinstance(t.get("result"), dict):
-                res = t["result"]
-                if res.get("status") == "ok" and res.get("campaign", {}).get("image_url"):
-                    camp_name = (res.get("campaign") or {}).get("name") or "campaign"
-                    final_answer = f"Here is the {camp_name} creative from our campaign library."
-                    return {
-                        "question": question,
-                        "plan": plan_steps,
-                        "trace": trace,
-                        "final_answer": final_answer,
-                    }
-
     final_answer = synthesize_answer(question, trace, llm)
 
     return {

@@ -9,7 +9,6 @@ from typing import Any, List
 from marketing_agent.llm.base import BaseLLM
 
 try:
-    from prompts.synthesis import get_synthesis_system
     from prompts.ad_plan_synthesis import get_ad_plan_synthesis_system
 except ImportError:
 
@@ -41,24 +40,6 @@ def _has_citation(text: str) -> bool:
     return bool(re.search(r"\[[^\[\]]+\]", text))
 
 
-def _get_campaign_succeeded(trace: List[dict[str, Any]]) -> bool:
-    """True if get_campaign was used and returned a campaign with image."""
-    for t in trace:
-        if t.get("tool") == "get_campaign" and isinstance(t.get("result"), dict):
-            res = t["result"]
-            if res.get("status") == "ok" and res.get("campaign", {}).get("image_url"):
-                return True
-    return False
-
-
-def _is_ad_plan_request(trace: List[dict[str, Any]]) -> bool:
-    """True if plan contains platform_chooser (Ad Plan flow)."""
-    for t in trace:
-        if t.get("tool") == "platform_chooser":
-            return True
-    return False
-
-
 def synthesize_answer(
     question: str,
     trace: List[dict[str, Any]],
@@ -75,15 +56,8 @@ def synthesize_answer(
             f"Result: {result_str[:2000]}{'...' if len(result_str) > 2000 else ''}"
         )
     tool_text = "\n\n".join(tool_blocks)
-
-    if _get_campaign_succeeded(trace):
-        system = get_synthesis_system(citations)
-        system += "\nThe user asked for a campaign creative. get_campaign returned a campaign with an image (shown below). Reply in 1-2 short sentences only, e.g. 'Here is the healthcare ad creative from our campaign library.' Do NOT write long ad copy, do NOT ask clarifying questions."
-    elif _is_ad_plan_request(trace):
-        system = get_ad_plan_synthesis_system(citations)
-        max_new_tokens = max(max_new_tokens, 1024)
-    else:
-        system = get_synthesis_system(citations)
+    system = get_ad_plan_synthesis_system(citations)
+    max_new_tokens = max(max_new_tokens, 1024)
 
     messages = [
         {"role": "system", "content": system},

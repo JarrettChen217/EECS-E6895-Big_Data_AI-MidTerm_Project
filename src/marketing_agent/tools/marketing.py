@@ -1,4 +1,4 @@
-"""Marketing tools: ad_planner, compliance_check, and get_campaign (campaign DB lookup)."""
+"""Marketing tools: ad_planner (legacy fallback), compliance_check, and get_campaign (campaign DB lookup)."""
 
 import json
 from pathlib import Path
@@ -14,25 +14,25 @@ def ad_planner(
     objectives: str = "",
     **kwargs: Any,
 ) -> dict[str, Any]:
-    """Placeholder: recommend platforms, ad formats, budget allocation, pacing.
+    """Legacy fallback for simple strategy questions.
 
-    Input: keywords, product_info, budget_total, objectives.
-    Output: platform/formats suggestions and budget draft (stub).
+    For full ad plans (product + budget), use platform_chooser + rag instead.
+    This stub returns minimal suggestions for backward compatibility.
     """
     return {
-        "status": "stub",
-        "message": "ad_planner is a placeholder; implement with LLM or rules.",
+        "status": "legacy_fallback",
+        "message": "Use platform_chooser and rag for full ad plans. This is a minimal fallback.",
         "suggestions": {
-            "platforms": ["Meta", "Google", "TikTok", "Amazon"],
+            "platforms": ["Meta", "Google", "TikTok"],
             "formats": ["Search", "Display", "Video"],
             "budget_allocation": {},
             "pacing": "test_then_scale",
         },
         "inputs": {
             "keywords": keywords,
-            "product_info": product_info[:200] if product_info else "",
+            "product_info": (product_info[:200] if product_info else ""),
             "budget_total": budget_total,
-            "objectives": objectives[:200] if objectives else "",
+            "objectives": (objectives[:200] if objectives else ""),
         },
     }
 

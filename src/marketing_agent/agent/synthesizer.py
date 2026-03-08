@@ -11,6 +11,7 @@ from marketing_agent.llm.base import BaseLLM
 try:
     from prompts.ad_plan_synthesis import get_ad_plan_synthesis_system
 except ImportError:
+    print("[warning]: prompts.ad_plan_synthesis not found, using default synthesis system.")
 
     def get_synthesis_system(citations: list[str] | None = None) -> str:
         base = "You are a helpful assistant. Use ONLY the provided tool outputs. Be concise.\n"

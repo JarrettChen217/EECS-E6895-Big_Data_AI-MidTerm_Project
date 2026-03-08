@@ -8,7 +8,7 @@ try:
     _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
     load_dotenv(_PROJECT_ROOT / ".env", override=True)
 except ImportError:
-    pass
+    print("[warning]: python-dotenv not installed, skipping .env load.")
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 # Hugging Face cache: default to project-relative path so it works on any machine

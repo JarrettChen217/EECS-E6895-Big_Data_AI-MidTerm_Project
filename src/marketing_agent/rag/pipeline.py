@@ -12,6 +12,7 @@ from marketing_agent.llm.base import BaseLLM
 try:
     from prompts.rag_system import RAG_SYSTEM
 except ImportError:
+    print("[warning]: prompts.rag_system not found, using default RAG_SYSTEM.")
     RAG_SYSTEM = (
         "You are a retrieval-augmented assistant.\n"
         "Answer the user's question using ONLY the provided context.\n"

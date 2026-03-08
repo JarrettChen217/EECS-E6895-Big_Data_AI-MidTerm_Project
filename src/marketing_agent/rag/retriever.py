@@ -10,6 +10,7 @@ from langchain_core.embeddings import Embeddings
 try:
     from langchain_huggingface import HuggingFaceEmbeddings
 except ImportError:
+    print("[warning]: langchain_huggingface not found, using langchain_community.HuggingFaceEmbeddings.")
     from langchain_community.embeddings import HuggingFaceEmbeddings  # type: ignore
 
 

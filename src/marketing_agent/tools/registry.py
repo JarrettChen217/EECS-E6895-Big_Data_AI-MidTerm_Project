@@ -27,6 +27,7 @@ def run_plan(
         try:
             result = tool_registry[tool_name](**args)
         except Exception as e:
+            print(f"[warning]: tool '{tool_name}' execution failed | reason: {e}")
             result = {"error": f"Tool execution failed: {str(e)}"}
 
         result_str = str(result)

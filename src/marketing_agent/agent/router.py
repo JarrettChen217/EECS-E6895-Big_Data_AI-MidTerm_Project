@@ -10,7 +10,7 @@ from marketing_agent.agent.utils import extract_json
 try:
     from prompts.router import make_router_prompt, ROUTER_SYSTEM, MAX_RAG_STEPS
 except ImportError:
-    print("Warning: prompts.router not found, using default router system.")
+    print("[warning]: prompts.router not found, using default router system.")
     ROUTER_SYSTEM = "Output strictly valid JSON only. No extra text."
     MAX_RAG_STEPS = 5
 
@@ -42,7 +42,7 @@ def _cap_rag_steps(plan: dict[str, Any], max_rag: int = 5) -> dict[str, Any]:
         from prompts.router import MAX_RAG_STEPS
         max_rag = MAX_RAG_STEPS
     except ImportError:
-        pass
+        print("[warning]: prompts.router MAX_RAG_STEPS not found, using default max_rag.")
     chosen = []
     rag_count = 0
     for step in steps:
@@ -68,5 +68,6 @@ def route_question(question: str, llm: BaseLLM) -> dict[str, Any]:
         if "plan" not in plan or not isinstance(plan["plan"], list) or len(plan["plan"]) == 0:
             raise ValueError("Invalid plan schema")
         return _cap_rag_steps(plan)
-    except Exception:
+    except Exception as e:
+        print(f"[warning]: router LLM/JSON/schema failed, using fallback plan | reason: {e}")
         return _fallback_plan(question)

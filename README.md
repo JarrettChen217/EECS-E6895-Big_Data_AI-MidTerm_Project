@@ -7,7 +7,7 @@ AI advertising agent for new marketplace sellers: platform/ad format recommendat
 ## Architecture
 
 - **Router**: Intent classification → JSON plan (which tools to call).
-- **Tools**: RAG (policy/docs), `ad_planner`, `compliance_check` (placeholders extensible later).
+- **Tools**: `platform_chooser` (benchmarks from data/benchmarks), RAG (policy/docs from corpus).
 - **Synthesizer**: Merges tool results into a final answer with citations.
 
 Flow: User question → Router → `run_plan` (tools) → Synthesizer → Final answer.
@@ -20,7 +20,7 @@ Flow: User question → Router → `run_plan` (tools) → Synthesizer → Final 
 │   ├── config.py      # Env-based config
 │   ├── llm/           # LLM abstraction (HuggingFace, OpenAI)
 │   ├── rag/           # RAG pipeline (corpus, retriever, pipeline)
-│   ├── tools/         # Tool registry, RAG tool, marketing tools (stubs)
+│   ├── tools/         # Tool registry, platform_chooser, RAG tool
 │   ├── agent/         # Router, synthesizer, run_agent
 │   └── chat.py        # Multi-turn chat (optional)
 ├── api/app.py         # Flask: GET /health, POST /agent, POST /api/advice-chat
@@ -40,9 +40,9 @@ bash scripts/setup_venv.sh
 source .venv/bin/activate
 ```
 
-详见 [docs/ENV_SETUP.md](docs/ENV_SETUP.md)（venv、显卡、CUDA 13 兼容说明）。
+See [docs/ENV_SETUP.md](docs/ENV_SETUP.md) for venv, GPU, and CUDA compatibility.
 
-### Option B: 仅本地 / CPU
+### Option B: Local / CPU
 
 ```bash
 python -m venv .venv
@@ -124,6 +124,14 @@ Then open the URL shown (e.g. http://localhost:5173). The dev server proxies `/a
 
 - **Background**: `frontend/public/Columbia.jpg` is used as the full-page background (with overlay for readability). If you have the image at `frontend/Columbia.jpg`, copy it to `frontend/public/Columbia.jpg`.
 - **Send**: Enter to send, Shift+Enter for new line; or use the Send button.
+
+## Tests
+
+Run tests (requires project dependencies: `pip install -r requirements.txt`):
+
+```bash
+PYTHONPATH=.:src python -m pytest tests/ -v
+```
 
 ## Config
 

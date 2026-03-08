@@ -26,7 +26,10 @@ OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 # RAG: resolve path relative to project root
 _CORPUS_PATH = os.getenv("CORPUS_PATH", "data/corpus/ad_policy_corpus.jsonl")
 CORPUS_PATH = (_PROJECT_ROOT / _CORPUS_PATH) if _CORPUS_PATH else None
+
+# Embedding (RAG): HuggingFace local model
 EMBED_MODEL_NAME = os.getenv("EMBED_MODEL_NAME", "sentence-transformers/all-MiniLM-L6-v2")
+
 RAG_TOP_K = int(os.getenv("RAG_TOP_K", "3"))
 
 # Campaigns DB (JSON) and assets directory

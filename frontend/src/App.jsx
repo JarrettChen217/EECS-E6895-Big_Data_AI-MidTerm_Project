@@ -1,6 +1,18 @@
 import { useState, useRef, useEffect } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import rehypeRaw from 'rehype-raw'
 
 const ROLE_USER = 'user'
+
+/** Wrap RAG citation patterns [doc_id] in spans for styling. Skips markdown links [text](url).
+ *  Matches both exact doc_ids ([meta_policy_health]) and human-style refs ([Google CPC benchmark]). */
+function wrapCitations(text) {
+  return String(text).replace(
+    /\[([a-zA-Z0-9_.\-][a-zA-Z0-9_.\- ]*)\](?!\s*\()/g,
+    '<span class="citation" data-ref="$1" title="Cited source"><span class="citation__icon" aria-hidden="true"></span>[$1]</span>'
+  )
+}
 const ROLE_ASSISTANT = 'assistant'
 const INTRO_STORAGE_KEY = 'eecs6895_intro_seen'
 
@@ -223,7 +235,15 @@ export default function App() {
             >
               <div className="block__label">{msg.role === ROLE_USER ? 'You' : 'Assistant'}</div>
               <div className="block__body">
-                {msg.content}
+                <div className="block__content">
+                  {msg.content != null && String(msg.content).trim() ? (
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                      {wrapCitations(msg.content)}
+                    </ReactMarkdown>
+                  ) : (
+                    msg.content
+                  )}
+                </div>
                 {msg.campaign_image_url && (
                   <div className="block__campaign-image">
                     <img src={msg.campaign_image_url} alt="Ad campaign creative" />

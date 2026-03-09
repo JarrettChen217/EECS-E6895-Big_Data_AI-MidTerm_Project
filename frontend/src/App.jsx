@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 const INTRO_STORAGE_KEY = 'eecs6895_intro_seen'
 
@@ -226,7 +228,9 @@ export default function App() {
               <div className="block block--assistant">
                 <div className="block__label">Response</div>
                 <div className="block__body">
-                  <div className="block__content">{reply ?? ''}</div>
+                  <div className="block__content">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{reply ?? ''}</ReactMarkdown>
+                  </div>
                 </div>
               </div>
             )}

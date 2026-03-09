@@ -32,10 +32,5 @@ EMBED_MODEL_NAME = os.getenv("EMBED_MODEL_NAME", "sentence-transformers/all-Mini
 
 RAG_TOP_K = int(os.getenv("RAG_TOP_K", "3"))
 
-# Campaigns DB (JSON) and assets directory
-_CAMPAIGNS_JSON = os.getenv("CAMPAIGNS_JSON", "data/campaigns.json")
-CAMPAIGNS_JSON_PATH = (_PROJECT_ROOT / _CAMPAIGNS_JSON) if _CAMPAIGNS_JSON else None
-CAMPAIGNS_ASSETS_DIR = _PROJECT_ROOT / "data" / "campaigns"
-
 # Benchmarks (CSV) for platform_chooser
 BENCHMARKS_DIR = _PROJECT_ROOT / "data" / "benchmarks"

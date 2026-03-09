@@ -112,12 +112,10 @@ export default function App() {
       const message = `Ad Info: ${adInfo}\nBudget: ${budget}\nTarget Audience: ${text}`
 
       try {
-        const res = await fetch('/api/advice-chat', {
+        const res = await fetch('/api/agent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messages: [{ role: 'user', content: message }],
-          }),
+          body: JSON.stringify({ question: message }),
         })
         const resText = await res.text()
         let data
@@ -127,7 +125,7 @@ export default function App() {
           throw new Error(
             res.ok
               ? 'Backend returned invalid JSON.'
-              : `Request failed (${res.status}). Is the server running on port 5000?`
+              : `Request failed (${res.status}). Is the server running?`
           )
         }
         if (!res.ok) {
@@ -228,7 +226,7 @@ export default function App() {
               <div className="block block--assistant">
                 <div className="block__label">Response</div>
                 <div className="block__body">
-                  <div className="block__content">{reply}</div>
+                  <div className="block__content">{reply ?? ''}</div>
                 </div>
               </div>
             )}

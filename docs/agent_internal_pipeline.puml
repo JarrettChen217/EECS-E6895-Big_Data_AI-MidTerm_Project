@@ -1,0 +1,62 @@
+@startuml
+
+title Marketing Agent - Internal Agent Pipeline
+
+left to right direction
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam linetype ortho
+skinparam packageStyle rectangle
+
+legend right
+Stage 1: Planner agents (LLM)
+Stage 2: Tool agents (structured data + RAG)
+Stage 3: Synthesizer agent (final plan)
+endlegend
+
+' Entry from Flask
+rectangle "Flask /api/agent\n(question)" as Entry
+
+
+' ================= STAGE 1: PLAN =================
+frame "STAGE 1  ·  PLAN\nPlanner Agents" as Stage1 {
+  rectangle "Router\n(route_question)\n- Understand brief\n- Decide which tools to call\n- Build JSON plan\n  [platform_chooser + RAG xN]" as Planner
+
+  rectangle "Registry\n(tool_registry)\n- Register platform_chooser\n- Register rag (if RAG enabled)" as Registry
+}
+
+
+' ================= STAGE 2: TOOLS =================
+frame "STAGE 2  ·  TOOLS\nExecution Agents" as Stage2 {
+  rectangle "Platform Chooser\n(platform_chooser)\n- Read benchmarks CSV\n- Recommend channels\n- Audience & KPI summary" as Cat1
+
+  rectangle "Policy / Knowledge RAG #1\n(rag_tool)\n- Retrieve docs\n- Answer policy/platform Q1" as Val1
+
+  rectangle "Policy / Knowledge RAG #2\n(rag_tool)\n- Retrieve docs\n- Answer policy/platform Q2" as Val2
+
+  rectangle "Policy / Knowledge RAG #3+\n(rag_tool)\n- Additional deep dives\n- Up to MAX_RAG_STEPS" as Val3
+}
+
+
+' ================= STAGE 3: SYNTHESIZE =================
+frame "STAGE 3  ·  SYNTHESIZE\nFinal Answer Agent" as Stage3 {
+  rectangle "Synthesizer\n(synthesize_answer)\n- Read full trace\n- Merge tool outputs\n- Add citations [doc_id]\n- Output Markdown ad plan" as Synth
+}
+
+
+' ======= FLOW BETWEEN STAGES (like board columns) =======
+Entry --> Planner : question
+Planner --> Registry : build plan[steps]
+Planner --> Cat1 : first tool step\n(platform_chooser)
+Planner --> Val1 : plan step\n(rag_tool #1)
+Planner --> Val2 : plan step\n(rag_tool #2)
+Planner --> Val3 : plan step\n(rag_tool #3..N)
+
+Cat1 --> Synth : tool result
+Val1 --> Synth : tool result
+Val2 --> Synth : tool result
+Val3 --> Synth : tool result(s)
+
+Synth --> Entry : reply (final_answer)
+
+@enduml

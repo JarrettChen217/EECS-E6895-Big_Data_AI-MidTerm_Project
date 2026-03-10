@@ -1,0 +1,141 @@
+@startuml
+
+title AI Agent Pipeline (Marketing Agent) - End-to-End
+
+left to right direction
+skinparam shadowing false
+skinparam linetype ortho
+skinparam roundcorner 12
+skinparam packageStyle rectangle
+
+legend right
+MainFlow: solid arrow (runtime request/response)
+Dependency: dashed arrow (config/data dependency)
+Optional: dotted arrow (available but not used by default UI)
+endlegend
+
+frame "Stage 0\nUser & Frontend (Implemented)" as Stage0 {
+  actor User as User
+  rectangle "Vite Frontend\n3-step questionnaire\n- Ad Info\n- Budget\n- Target Audience\n\nBuild question string:\n\"Ad Info: ...\\nBudget: ...\\nTarget Audience: ...\"" as Frontend
+}
+
+frame "Stage 1\nAPI Layer - Flask (Implemented)" as Stage1 {
+  rectangle "/api/agent\nreturn { reply, raw }" as ApiAgent
+  rectangle "/agent\n(debug: raw run_agent result)" as ApiDebug
+  rectangle "/api/advice-chat\n(pure LLM chat)\nOptional endpoint" as ApiAdvice
+  rectangle "/health\nstatus ok" as ApiHealth
+}
+
+frame "Stage 2\nAgent Orchestrator (Implemented)" as Stage2 {
+  rectangle "run_agent(question)\nOrchestrate: plan -> tools -> synthesis" as RunAgent
+
+  rectangle "get_llm()\nSelect backend via config.LLM_BACKEND" as GetLLM
+  rectangle "_get_default_retriever()\nConditional: enabled when CORPUS_PATH exists" as GetRetriever
+
+  artifact "tool_registry\n- platform_chooser (required)\n- rag (if retriever available)" as ToolRegistry
+
+  rectangle "route_question(question, llm)\nLLM planner -> plan JSON" as Router
+  note right of Router
+    Plan constraints (Implemented):
+    - 1x platform_chooser
+    - 2..5x rag steps (capped to MAX_RAG_STEPS)
+    - fallback plan if JSON/schema parse fails
+  end note
+
+  artifact "plan.json\n[{tool,args}, ...]" as PlanJson
+
+  rectangle "run_plan(plan, tool_registry)\nExecute sequentially\nError-tolerant: tool failure\nwon't stop later steps" as RunPlan
+  artifact "trace[]\n{ tool, args, result,\n  result_preview }" as Trace
+
+  rectangle "synthesize_answer(question, trace, llm)\nGenerate structured ad plan\nMarkdown + citations [doc_id]" as Synthesizer
+  note right of Synthesizer
+    Synthesis rules (Implemented):
+    - Use ONLY tool outputs (no fabricated numbers)
+    - Sections:
+      1.Platform Selection
+      2.Budget Allocation
+      3.Target Audience
+      4.Ad Formats
+      5.Key Compliance Points
+      6.Execution Recommendations
+    - If RAG evidence exists, add [doc_id] citations
+  end note
+}
+
+frame "Stage 3\nTools (Implemented)" as Stage3 {
+  rectangle "platform_chooser(industry, region=US, include_audience=true)\nReturn:\n- platform KPIs (CPC/CPM/CPA, CTR, CVR)\n- audience insights" as PlatformChooser <<tool>>
+
+  rectangle "rag_tool(question, k=3)\nRAG answer + evidence[]\nReturn:\n{ answer, evidence[{doc_id,title,...}] }" as RagTool <<tool>>
+}
+
+frame "Stage 4\nData & Models (Implemented + Conditional)" as Stage4 {
+  rectangle "config.py + .env\n- LLM_BACKEND\n- API keys / model names\n- CORPUS_PATH / EMBED_MODEL_NAME\n- RAG_TOP_K\n- BENCHMARKS_DIR\n- HF_HOME (cache path)" as Config
+
+  rectangle "LLM Backend\n- OpenAI (remote)\n- HuggingFace (local/remote)\n\nllm.generate(messages,\nmax_new_tokens, temperature)" as LLMBackend <<LLM>>
+
+  database "Benchmarks CSV\n(data/benchmarks/*.csv)\nMeta + Google industry KPIs\nAudience behavior stats" as Benchmarks <<data>>
+
+  database "RAG Corpus JSONL\n(data/corpus/*.jsonl)\nPolicy/knowledge documents" as Corpus <<data>>
+
+  rectangle "VectorStore + Retriever\n(load -> embed -> index)\nretriever.invoke(query) -> top-k docs" as Retriever <<data>>
+}
+
+frame "Stage 5\nFinal Output (Implemented)" as Stage5 {
+  rectangle "Final Ad Plan (Markdown)\n- structured sections\n- compliance points\n- recommendations\n- citations: [doc_id]\n\nAPI response:\n{ reply, raw{ question, plan, trace, final_answer } }" as FinalOutput
+}
+
+' -------- Main runtime flow (solid) --------
+User --> Frontend : fill form
+Frontend --> ApiAgent : POST /api/agent\n{ question }
+ApiAgent --> RunAgent : run_agent(question)
+
+RunAgent --> GetLLM
+RunAgent --> GetRetriever
+RunAgent --> ToolRegistry
+
+RunAgent --> Router : plan = route_question(...)
+Router --> PlanJson
+PlanJson --> RunPlan
+
+RunPlan --> PlatformChooser : step 1
+RunPlan --> RagTool : steps 2..N
+
+RunPlan --> Trace : append results
+Trace --> Synthesizer
+Synthesizer --> RunAgent : final_answer
+
+RunAgent --> ApiAgent : raw result
+ApiAgent --> Frontend : { reply, raw }
+Frontend --> User : show structured plan
+
+Synthesizer --> FinalOutput : reply (final_answer)
+ApiAgent --> FinalOutput : raw (plan + trace)
+
+' -------- Optional endpoints (dotted) --------
+Frontend ..> ApiAdvice : (optional)\nPOST /api/advice-chat\n{messages[]}
+ApiAdvice ..> GetLLM : get_llm()
+ApiAdvice ..> LLMBackend : llm.generate(...)
+
+ApiDebug ..> RunAgent : (optional)\nPOST /agent\n{question}
+
+' -------- Dependencies (dashed) --------
+Config ..> GetLLM
+Config ..> GetRetriever
+Config ..> PlatformChooser
+Config ..> RagTool
+
+PlatformChooser ..> Benchmarks : read/aggregate
+GetRetriever ..> Retriever : build/load index
+Retriever ..> Corpus : load docs
+GetLLM ..> LLMBackend : select backend/model
+RagTool ..> Retriever : retrieve top-k docs
+RagTool ..> LLMBackend : generate grounded answer
+Synthesizer ..> LLMBackend : generate final plan
+
+note bottom of Stage4
+RAG is conditional:
+- If CORPUS_PATH is not set / corpus missing -> retriever not built -> rag tool not registered.
+In that case, pipeline still works with platform_chooser + synthesis (with fewer citations).
+end note
+
+@enduml

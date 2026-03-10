@@ -171,6 +171,43 @@ export default function App() {
         </aside>
 
         <main className="main">
+          <div className="main__content">
+            {/* Section 1 — Page Title */}
+            <section className="page-title" aria-labelledby="page-title-heading">
+              <h1 id="page-title-heading" className="page-title__heading">AI Agentic Ad Planner</h1>
+              <p className="page-title__subtitle">
+                Automated ad planning and copy generation workflow powered by retrieval, template selection, and compliance checking.
+              </p>
+            </section>
+
+            {/* Section 2 — Upload / Analyze / Review */}
+            <section className="steps" aria-labelledby="steps-heading">
+              <h2 id="steps-heading" className="steps__sr-only">Workflow steps</h2>
+              <div className="steps__grid">
+                <div className="step-card">
+                  <h3 className="step-card__title">Upload</h3>
+                  <p className="step-card__desc">Enter product info, advertisement budget, and description of target user.</p>
+                </div>
+                <div className="step-card">
+                  <h3 className="step-card__title">Analyze</h3>
+                  <p className="step-card__desc">Analyzes data of CPC, CPM, CPA, CTR, Conversion Rate, platform usage by age group across various industries and platforms to provide the most effective budget allocation.</p>
+                </div>
+                <div className="step-card">
+                  <h3 className="step-card__title">Review</h3>
+                  <p className="step-card__desc">Check product info against suggested platforms' policies and make sure the output plan meets all platform requirements.</p>
+                </div>
+              </div>
+            </section>
+
+            {/* Section 3 — Pipeline Architecture (image) */}
+            <section className="pipeline" aria-labelledby="pipeline-heading">
+              <h2 id="pipeline-heading" className="pipeline__title">Pipeline Architecture</h2>
+              <div className="pipeline__image-wrap">
+                <img src="/pipeline.jpg" alt="Pipeline architecture diagram" className="pipeline__image" />
+              </div>
+            </section>
+          </div>
+
           <div className="thread" role="log" aria-live="polite">
             {step >= 0 && (
               <div className="block block--assistant">

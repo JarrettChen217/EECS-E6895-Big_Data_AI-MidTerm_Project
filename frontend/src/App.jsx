@@ -203,7 +203,7 @@ export default function App() {
             <section className="pipeline" aria-labelledby="pipeline-heading">
               <h2 id="pipeline-heading" className="pipeline__title">Pipeline Architecture</h2>
               <div className="pipeline__image-wrap">
-                <img src="/pipeline.jpg" alt="Pipeline architecture diagram" className="pipeline__image" />
+                <img src="/pipeline.png" alt="Pipeline architecture diagram" className="pipeline__image" />
               </div>
             </section>
           </div>

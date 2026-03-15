@@ -17,7 +17,7 @@ if not os.getenv("HF_HOME") and not os.getenv("HUGGINGFACE_HUB_CACHE"):
 
 # LLM
 LLM_BACKEND = os.getenv("LLM_BACKEND", "huggingface")
-HF_TOKEN = os.getenv("HF_TOKEN", "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")
+HF_TOKEN = os.getenv("HF_TOKEN", "")
 HF_MODEL_NAME = os.getenv("HF_MODEL_NAME", "Qwen/Qwen2.5-3B-Instruct")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")

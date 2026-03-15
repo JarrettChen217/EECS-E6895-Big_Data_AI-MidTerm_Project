@@ -1,4 +1,4 @@
-"""Flask API: GET /health, POST /agent, POST /api/advice-chat."""
+"""Flask API: GET /health, POST /agent, POST /api/advice-chat. Serves frontend build when present."""
 
 import sys
 import time
@@ -11,9 +11,13 @@ if str(_root) not in sys.path:
 if str(_root / "src") not in sys.path:
     sys.path.insert(0, str(_root / "src"))
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 
-app = Flask(__name__)
+# Frontend build output (after: cd frontend && npm run build)
+FRONTEND_DIST = _root / "frontend" / "dist"
+SERVE_FRONTEND = FRONTEND_DIST.is_dir()
+
+app = Flask(__name__, static_folder=str(FRONTEND_DIST) if SERVE_FRONTEND else None, static_url_path="")
 
 
 @app.route("/health", methods=["GET"])
@@ -75,6 +79,22 @@ def advice_chat():
         return jsonify({"reply": reply, "assign_time_ms": assign_time_ms})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+if SERVE_FRONTEND:
+    @app.route("/", methods=["GET"])
+    def index():
+        return send_from_directory(FRONTEND_DIST, "index.html")
+
+    @app.route("/<path:path>", methods=["GET"])
+    def frontend_spa(path):
+        """SPA fallback: serve index.html for non-API, non-file paths."""
+        if path.startswith("api/"):
+            return jsonify({"error": "Not found"}), 404
+        file_path = FRONTEND_DIST / path
+        if file_path.is_file():
+            return send_from_directory(FRONTEND_DIST, path)
+        return send_from_directory(FRONTEND_DIST, "index.html")
 
 
 if __name__ == "__main__":

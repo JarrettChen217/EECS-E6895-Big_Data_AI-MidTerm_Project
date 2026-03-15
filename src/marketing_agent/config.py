@@ -32,5 +32,7 @@ EMBED_MODEL_NAME = os.getenv("EMBED_MODEL_NAME", "sentence-transformers/all-Mini
 
 RAG_TOP_K = int(os.getenv("RAG_TOP_K", "3"))
 
+VITE_BACKEND_PORT = int(os.getenv("VITE_BACKEND_PORT", 9999))
+
 # Benchmarks (CSV) for platform_chooser
 BENCHMARKS_DIR = _PROJECT_ROOT / "data" / "benchmarks"

@@ -48,7 +48,7 @@ def run_agent(
 
     plan = route_question(question, llm)
     trace = run_plan(plan, tool_registry)
-    final_answer = synthesize_answer(question, trace, llm)
+    final_answer = synthesize_answer(question, trace, llm, max_new_tokens=4096)
 
     return {
         "question": question,

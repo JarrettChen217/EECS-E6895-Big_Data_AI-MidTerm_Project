@@ -1,73 +1,121 @@
 # Marketing Advertiser AI Agent
 
-Midterm project of EECS-E6895 Big Data AI (2026 Spring).
+Midterm project for **EECS E6895: Big Data AI** (Spring 2026).
 
-AI advertising agent for new marketplace sellers: platform/ad format recommendations, budget allocation and pacing, ad design plans, and compliance/risk checks. Data sources include ad policies (Meta, Google, TikTok, Amazon) and CPC/CPM/CPA benchmarks.
+**Authors:** Tianrui Fang (tf2639), Hao Chen (hc3625), Tianyu Zhan (tz2704) — Columbia University.
 
-## Architecture
+An AI advertising agent that helps new marketplace sellers with platform selection, budget allocation, ad format suggestions, and policy compliance. It uses a **Router → Tool Executor → Synthesizer** pipeline: the Router plans which tools to call, the Executor runs `platform_chooser` (benchmark data) and RAG (policy corpus), and the Synthesizer merges results into a final answer with citations.
 
-- **Router**: Intent classification → JSON plan (which tools to call).
-- **Tools**: `platform_chooser` (benchmarks from data/benchmarks), RAG (policy/docs from corpus).
-- **Synthesizer**: Merges tool results into a final answer with citations.
+---
 
-Flow: User question → Router → `run_plan` (tools) → Synthesizer → Final answer.
-
-## Project layout
+## Repository structure
 
 ```
-├── prompts/           # Centralized prompts (router, RAG, synthesis)
-├── src/marketing_agent/
-│   ├── config.py      # Env-based config
-│   ├── llm/           # LLM abstraction (HuggingFace, OpenAI)
-│   ├── rag/           # RAG pipeline (corpus, retriever, pipeline)
-│   ├── tools/         # Tool registry, platform_chooser, RAG tool
-│   ├── agent/         # Router, synthesizer, run_agent
-│   └── chat.py        # Multi-turn chat (optional)
-├── api/app.py         # Flask: GET /health, POST /agent, POST /api/advice-chat
-├── frontend/          # Vite + React chat UI (Ad Advice Chat)
-├── data/corpus/       # JSONL corpus (doc_id, text)
+├── prompts/              # Prompt templates (router, RAG, synthesis)
+├── src/marketing_agent/  # Agent core
+│   ├── config.py         # Env-based config
+│   ├── llm/              # LLM backend (HuggingFace / OpenAI)
+│   ├── rag/              # RAG pipeline (corpus, retriever, FAISS)
+│   ├── tools/            # platform_chooser, RAG tool
+│   └── agent/            # Router, synthesizer, run_agent
+├── api/app.py            # Flask API
+├── frontend/             # React + Vite chat UI
+├── data/
+│   ├── benchmarks/       # CPC/CPM/CPA CSV data
+│   └── corpus/           # Policy JSONL corpus
 └── tests/
 ```
 
-## Setup
+---
 
-### Option A: GPU (Ubuntu + NVIDIA + CUDA)
+## How to install dependencies
 
-One-shot venv + PyTorch (CUDA 12.4) + project deps:
+### 1. Clone and enter the repo
 
 ```bash
-bash scripts/setup_venv.sh
-source .venv/bin/activate
+git clone <repo-url>
+cd EECS-E6895-Big_Data_AI-MidTerm_Project
 ```
 
-See [docs/ENV_SETUP.md](docs/ENV_SETUP.md) for venv, GPU, and CUDA compatibility.
-
-### Option B: Local / CPU
+### 2. Create and activate a virtual environment
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
 ```
 
-### Env and secrets
+### 3. Install Python dependencies
 
-1. Copy env and set secrets:
-
-   ```bash
-   cp .env.example .env
-   # Edit .env: set HF_TOKEN (and optionally OPENAI_API_KEY, CORPUS_PATH, etc.)
-   ```
-
-2. An example RAG corpus is at `data/corpus/ad_policy_corpus.jsonl` (Meta/Google/TikTok policy snippets). For your own data, use the same JSONL format: each line is a JSON object with at least `doc_id` and `text`.
-
-## Usage
-
-### Python
-
-Run from repo root with `PYTHONPATH` so that `marketing_agent` and `prompts` resolve:
+First install project dependencies **without** PyTorch (to avoid version conflicts):
 
 ```bash
+pip install -r requirements-no-torch.txt
+```
+
+Then install **PyTorch** according to your machine (choose one):
+
+- **CPU only:**  
+`pip install torch`
+- **GPU (CUDA):**  
+See [pytorch.org](https://pytorch.org/get-started/locally/) for the correct `pip install torch ...` command for your CUDA version.
+
+### 4. Create and configure `.env` (required)
+
+**You must create a `.env` file before running the project;** the application reads LLM keys and paths from it and will not start without it.
+
+1. **Copy the example file:**
+  ```bash
+   cp .env.example .env
+  ```
+2. **Edit `.env` and set at least one LLM backend:**
+  - **HuggingFace:** Set `LLM_BACKEND=huggingface`, then set `HF_TOKEN` to your HuggingFace token. Optionally set `HF_MODEL_NAME` (default: `Qwen/Qwen2.5-3B-Instruct`).
+  - **OpenAI (or compatible API):** Set `LLM_BACKEND=openai`, then set `OPENAI_API_KEY`. For a custom base URL (e.g. Cherry), set `OPENAI_BASE_URL` and `OPENAI_MODEL` as needed.
+3. **Proxy (Vite frontend <-> backend):**
+  The Vite frontend proxies API requests to the Flask backend. Default is `http://localhost:9999`. If the port is in use, set `VITE_BACKEND_PORT` in `.env`; both the frontend dev server and the backend will then use that port to communicate.
+4. **Optional:** `CORPUS_PATH` (default: `data/corpus/ad_policy_corpus.jsonl`), `EMBED_MODEL_NAME`, `RAG_TOP_K` — only change if you use a custom RAG corpus or embedding model.
+
+---
+
+## How to run the system
+
+This project uses **frontend–backend separation**: a Flask API backend and a Vite (React) frontend. Run the backend first, then the frontend; the frontend proxies API requests to the backend.
+
+All commands assume you are in the **repository root**.
+
+### Step 1: Activate the virtual environment
+
+```bash
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+```
+
+### Step 2: Start the backend (Flask API)
+
+The backend reads the `**PORT**` environment variable to decide which port to bind to (default **9999** if `PORT` is not set):
+
+```bash
+PYTHONPATH=.:src python -m api.app
+```
+
+### Step 3: Start the frontend (Vite)
+
+Use **Node.js 18+** and install dependencies with `**npm ci`** (recommended for a clean install), then run the dev server:
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+Open the URL shown in the terminal (e.g. [http://localhost:5173](http://localhost:5173)). The Vite dev server proxies `/api` to the backend; ensure the backend is running for the chat UI to work.
+
+---
+
+### Run the agent in Python only (no UI)
+
+To call the agent from the command line without starting the API or frontend:
+
+```bash
+source .venv/bin/activate
 PYTHONPATH=.:src python -c "
 from marketing_agent.agent.run import run_agent
 result = run_agent('Which platforms should I use for a \$5k monthly ad budget?')
@@ -75,74 +123,44 @@ print(result['final_answer'])
 "
 ```
 
-Or use the CLI script (same PYTHONPATH):
+---
+
+## Example usage
+
+With the **backend** running (Step 2 above), call the API (replace `9999` with your `PORT` if set):
 
 ```bash
-PYTHONPATH=.:src python scripts/run_agent_cli.py "What are Meta's ad policies for health?"
+curl http://localhost:9999/health
+curl -X POST http://localhost:9999/agent -H "Content-Type: application/json" -d '{"question": "What are Meta ad policies for health claims?"}'
 ```
 
-**On SSH:** You can use the runner scripts (no need to set PYTHONPATH or activate venv manually): `bash scripts/run_agent_ssh.sh "question"` and `bash scripts/run_flask_ssh.sh` for the API. See [docs/ENV_SETUP.md](docs/ENV_SETUP.md) section 6.
+**Python-only** and **frontend chat** usage are described in **How to run the system** above.
 
-### Backend (Flask API)
-
-Start the server from **repo root** so `api` and `src` are on path (default port **5000**):
-
-```bash
-PYTHONPATH=.:src python -m api.app
-# or: FLASK_APP=api.app:app PYTHONPATH=.:src flask run
-```
-
-Then:
-
-```bash
-# Health
-curl http://localhost:5000/health
-
-# Agent
-curl -X POST http://localhost:5000/agent -H "Content-Type: application/json" -d '{"question": "What are Meta ad policies for health claims?"}'
-
-# Chat (advice-chat, used by frontend)
-curl -X POST http://localhost:5000/api/advice-chat -H "Content-Type: application/json" -d '{"messages":[{"role":"user","content":"Hello"}]}'
-
-# Unified Agent for frontend
-curl -X POST http://localhost:5000/api/agent -H "Content-Type: application/json" -d '{"question": "What platforms should I use for a 5k budget?", "messages":[{"role":"user","content":"I am a new seller"}]}'
-```
-
-The chat endpoint returns `{ "reply": "...", "assign_time_ms": ... }`. OpenAI API key is read from `.env` on the server only (never exposed to the frontend).
-
-### Frontend (Chat UI)
-
-React chat page (Vite) with Columbia background. From repo root:
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Then open the URL shown (e.g. http://localhost:5173). The dev server proxies `/api` to the backend at http://localhost:5000, so the backend must be running for chat to work.
-
-- **Background**: `frontend/public/Columbia.jpg` is used as the full-page background (with overlay for readability). If you have the image at `frontend/Columbia.jpg`, copy it to `frontend/public/Columbia.jpg`.
-- **Send**: Enter to send, Shift+Enter for new line; or use the Send button.
+---
 
 ## Tests
-
-Run tests (requires project dependencies: `pip install -r requirements.txt`):
 
 ```bash
 PYTHONPATH=.:src python -m pytest tests/ -v
 ```
 
-## Config
+---
 
-See `.env.example`. Main variables:
+## Config summary
 
-- `LLM_BACKEND`: `huggingface` (default) or `openai`
-- `HF_TOKEN`, `HF_MODEL_NAME`: for HuggingFace
-- `OPENAI_API_KEY`, `OPENAI_MODEL`: for OpenAI
-- `CORPUS_PATH`, `EMBED_MODEL_NAME`, `RAG_TOP_K`: RAG behavior
+Main variables read from `.env` (see `.env.example` for full list and defaults):
 
-## References
 
-- Proposal: `Marketing _ Advertiser 1.pdf`
-- Agent structure refactored from: `Final Submission.ipynb` (HW1)
+| Variable            | Purpose                                                                 |
+| ------------------- | ----------------------------------------------------------------------- |
+| `LLM_BACKEND`       | `huggingface` or `openai`                                               |
+| `HF_TOKEN`          | HuggingFace API token (required when using HuggingFace)                 |
+| `HF_MODEL_NAME`     | HuggingFace model name (e.g. `Qwen/Qwen2.5-3B-Instruct`)                |
+| `OPENAI_API_KEY`    | OpenAI API key (required when using OpenAI)                             |
+| `OPENAI_MODEL`      | OpenAI model name                                                       |
+| `OPENAI_BASE_URL`   | Optional; for OpenAI-compatible APIs (e.g. Cherry)                      |
+| `CORPUS_PATH`       | RAG corpus JSONL path (`doc_id`, `text` per line)                       |
+| `EMBED_MODEL_NAME`  | Embedding model for RAG (e.g. `sentence-transformers/all-MiniLM-L6-v2`) |
+| `RAG_TOP_K`         | Number of passages to retrieve                                          |
+| `VITE_BACKEND_PORT` | Backend port for frontend proxy (e.g. `9999`)                           |
+

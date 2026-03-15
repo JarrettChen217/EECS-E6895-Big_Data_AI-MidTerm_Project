@@ -33,7 +33,7 @@ An AI advertising agent that helps new marketplace sellers with platform selecti
 ### 1. Clone and enter the repo
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/JarrettChen217/EECS-E6895-Big_Data_AI-MidTerm_Project.git
 cd EECS-E6895-Big_Data_AI-MidTerm_Project
 ```
 

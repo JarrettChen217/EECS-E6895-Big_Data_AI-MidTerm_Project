@@ -15,8 +15,16 @@ except ImportError:
 
 
 def get_embeddings(model_name: str) -> Embeddings:
-    """Return HuggingFace Embeddings instance."""
-    return HuggingFaceEmbeddings(model_name=model_name)
+    """Return HuggingFace Embeddings instance. Uses HF_TOKEN from config when set."""
+    from marketing_agent import config as agent_config
+
+    model_kwargs = {}
+    if getattr(agent_config, "HF_TOKEN", ""):
+        model_kwargs["token"] = agent_config.HF_TOKEN
+    return HuggingFaceEmbeddings(
+        model_name=model_name,
+        model_kwargs=model_kwargs if model_kwargs else None,
+    )
 
 
 def build_vectorstore(

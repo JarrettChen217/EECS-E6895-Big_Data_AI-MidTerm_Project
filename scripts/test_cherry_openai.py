@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 """
-独立测试脚本：用与后端相同的配置调用 Cherry Studio（OpenAI 兼容）接口。
-用于排查 401 无效令牌等问题。
+Standalone test script: call Cherry Studio (OpenAI-compatible) API using the same
+config as the backend. Use for debugging 401 invalid token etc.
 
-使用方式：
-  1. 在项目根目录的 .env 中设置（Cherry Studio）：
-     OPENAI_API_KEY=sk-xxxxxxxx
+Usage:
+  1. In project root .env set (for Cherry Studio):
+     OPENAI_API_KEY=sk-your-key-here
      OPENAI_BASE_URL=https://open.cherryin.net/v1
      OPENAI_MODEL=openai/gpt-5-chat
-  2. 在项目根目录执行：python scripts/test_cherry_openai.py
+  2. From project root run: python scripts/test_cherry_openai.py
 """
 
 import os
 import sys
 from pathlib import Path
 
-# 加载 .env（与 config 一致）
+# Load .env (same as config)
 _root = Path(__file__).resolve().parent.parent
 _dotenv = _root / ".env"
 if _dotenv.exists():
@@ -32,8 +32,8 @@ MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip()
 
 def main():
     if not API_KEY:
-        print("错误: 未设置 OPENAI_API_KEY。请在 .env 中配置或导出环境变量。", file=sys.stderr)
-        print("示例: OPENAI_API_KEY=sk-xxxxxxxx", file=sys.stderr)
+        print("Error: OPENAI_API_KEY not set. Configure it in .env or export it.", file=sys.stderr)
+        print("Example: OPENAI_API_KEY=sk-your-key-here", file=sys.stderr)
         sys.exit(1)
 
     print(f"BASE_URL: {BASE_URL}")
@@ -44,7 +44,7 @@ def main():
     try:
         from openai import OpenAI
     except ImportError:
-        print("错误: 未安装 openai 包。请执行: pip install openai", file=sys.stderr)
+        print("Error: openai package not installed. Run: pip install openai", file=sys.stderr)
         sys.exit(1)
 
     client = OpenAI(api_key=API_KEY, base_url=BASE_URL)
@@ -52,12 +52,12 @@ def main():
     try:
         response = client.chat.completions.create(
             model=MODEL,
-            messages=[{"role": "user", "content": "你好，请用一句话介绍你自己"}],
+            messages=[{"role": "user", "content": "Say hello in one sentence."}],
         )
         text = (response.choices[0].message.content or "").strip()
-        print("成功! 回复:", text)
+        print("Success! Reply:", text)
     except Exception as e:
-        print("请求失败:", e)
+        print("Request failed:", e)
         sys.exit(1)
 
 

@@ -1,4 +1,4 @@
-# 不含 torch：在你已安装 cu130/cu124 等 PyTorch 的 venv 里只装其余依赖，避免覆盖
+# No torch: install only the rest of deps in a venv where you already have PyTorch (e.g. cu130/cu124) to avoid overwriting
 # Usage:  pip install -r requirements-no-torch.txt
 
 # Core LLM (Hugging Face)

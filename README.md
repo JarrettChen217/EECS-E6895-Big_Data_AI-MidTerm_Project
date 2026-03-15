@@ -78,35 +78,44 @@ See [pytorch.org](https://pytorch.org/get-started/locally/) for the correct `pip
 
 ## How to run the system
 
-This project uses **frontend–backend separation**: a Flask API backend and a Vite (React) frontend. Run the backend first, then the frontend; the frontend proxies API requests to the backend.
+The repo includes a pre-built frontend in `frontend/dist`. **You only need to run the Flask backend**; it serves both the web UI and the API. No Node.js or separate frontend process is required.
 
-All commands assume you are in the **repository root**.
+All commands below assume you are in the **repository root**.
 
-### Step 1: Activate the virtual environment
+### 1. Activate the virtual environment
 
 ```bash
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 ```
 
-### Step 2: Start the backend (Flask API)
-
-The backend reads the `**PORT**` environment variable to decide which port to bind to (default **9999** if `PORT` is not set):
+### 2. Start the backend
 
 ```bash
 PYTHONPATH=.:src python -m api.app
 ```
 
-### Step 3: Start the frontend (Vite)
+The app binds to port **9999** by default (or the value of `VITE_BACKEND_PORT` in `.env`). Open [http://localhost:9999](http://localhost:9999) in your browser to use the chat UI. Flask serves the frontend at `/` and the API at `/api/`*.
 
-Use **Node.js 18+** and install dependencies with `**npm ci`** (recommended for a clean install), then run the dev server:
+> To build and start in one go (requires Node.js): `bash scripts/build_and_run.sh`
 
-```bash
-cd frontend
-npm ci
-npm run dev
-```
+---
 
-Open the URL shown in the terminal (e.g. [http://localhost:5173](http://localhost:5173)). The Vite dev server proxies `/api` to the backend; ensure the backend is running for the chat UI to work.
+### Optional: Running frontend and backend separately
+
+For development with hot reload, you can run the Vite dev server and the Flask API as two processes. The frontend will proxy `/api` to the backend.
+
+1. Activate the venv and start the backend (same as above):
+  ```bash
+   source .venv/bin/activate
+   PYTHONPATH=.:src python -m api.app
+  ```
+2. In another terminal, install frontend deps and run the dev server (Node.js 18+):
+  ```bash
+   cd frontend
+   npm ci
+   npm run dev
+  ```
+3. Open the URL shown by Vite (e.g. [http://localhost:5173](http://localhost:5173)). The backend must be running for API calls to work.
 
 ---
 
@@ -163,4 +172,5 @@ Main variables read from `.env` (see `.env.example` for full list and defaults):
 | `EMBED_MODEL_NAME`  | Embedding model for RAG (e.g. `sentence-transformers/all-MiniLM-L6-v2`) |
 | `RAG_TOP_K`         | Number of passages to retrieve                                          |
 | `VITE_BACKEND_PORT` | Backend port for frontend proxy (e.g. `9999`)                           |
+
 

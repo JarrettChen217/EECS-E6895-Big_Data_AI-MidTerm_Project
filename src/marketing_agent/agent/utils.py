@@ -21,10 +21,6 @@ def extract_json(text: str) -> dict:
         try:
             result, _ = json.JSONDecoder().raw_decode(text[start:])
             if isinstance(result, dict):
-                print("--------------------------------")
-                print("resultof extract_json")
-                print(result)
-                print("--------------------------------")
                 return result
         except json.JSONDecodeError as e:
             errors.append(f"Parse error at index {start}: {e}")

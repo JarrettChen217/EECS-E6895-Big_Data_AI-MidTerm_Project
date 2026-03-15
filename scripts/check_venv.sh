@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# 检查当前环境：是否在 venv 内、PyTorch 版本、CUDA 是否可用（不安装任何东西）
+# Check current env: venv active?, PyTorch version, CUDA available (no install).
 # Usage:  source .venv/bin/activate && bash scripts/check_venv.sh
-#     or:  bash scripts/check_venv.sh   (会尝试用 .venv/bin/python)
+#     or:  bash scripts/check_venv.sh   (will try .venv/bin/python if present)
 
 set -e
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-# 优先使用当前 shell 的 python（若已 activate venv），否则用 .venv 里的
+# Prefer current shell's python if venv is active, else use .venv/bin/python
 if [[ -n "$VIRTUAL_ENV" ]]; then
   PYTHON="python"
   echo "Using venv: $VIRTUAL_ENV"

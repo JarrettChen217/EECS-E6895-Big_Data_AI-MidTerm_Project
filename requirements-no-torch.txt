@@ -1,9 +1,10 @@
-# 不含 torch：在你已安装 cu130/cu124 等 PyTorch 的 venv 里只装其余依赖，避免覆盖
+# No torch: install only the rest of deps in a venv where you already have PyTorch (e.g. cu130/cu124) to avoid overwriting
 # Usage:  pip install -r requirements-no-torch.txt
 
 # Core LLM (Hugging Face)
 # Pin transformers<5 if sharing venv with chronos-forecasting (it requires transformers<5,>=4.41)
-huggingface-hub>=1.3.0
+# transformers 4.x requires huggingface-hub<1.0; do not use >=1.3.0
+huggingface-hub>=0.34.0,<1.0
 transformers>=4.36.0,<5
 accelerate
 

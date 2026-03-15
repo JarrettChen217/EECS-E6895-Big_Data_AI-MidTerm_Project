@@ -17,7 +17,7 @@ if not os.getenv("HF_HOME") and not os.getenv("HUGGINGFACE_HUB_CACHE"):
 
 # LLM
 LLM_BACKEND = os.getenv("LLM_BACKEND", "huggingface")
-HF_TOKEN = os.getenv("HF_TOKEN", "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")
+HF_TOKEN = os.getenv("HF_TOKEN", "")
 HF_MODEL_NAME = os.getenv("HF_MODEL_NAME", "Qwen/Qwen2.5-3B-Instruct")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
@@ -31,6 +31,8 @@ CORPUS_PATH = (_PROJECT_ROOT / _CORPUS_PATH) if _CORPUS_PATH else None
 EMBED_MODEL_NAME = os.getenv("EMBED_MODEL_NAME", "sentence-transformers/all-MiniLM-L6-v2")
 
 RAG_TOP_K = int(os.getenv("RAG_TOP_K", "3"))
+
+VITE_BACKEND_PORT = int(os.getenv("VITE_BACKEND_PORT", 9999))
 
 # Benchmarks (CSV) for platform_chooser
 BENCHMARKS_DIR = _PROJECT_ROOT / "data" / "benchmarks"
